@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Logo, FormRow, Alert } from '../components';
 import Wrapper from '../assets/wrappers/RegisterPage';
+import { useAppContext } from '../context/appcontext';
 
 const initialState = {
   businessName: '',
@@ -11,34 +12,60 @@ const initialState = {
   password: '',
   rePassword: '',
   isMember: true,
-  showAlert: false,
 };
 
 const Register = () => {
   const [values, setValues] = useState(initialState);
   // global state and useNavigate
+  const { isLoading, showAlert, displayAlert,alertText } = useAppContext();
+
   const toggleMember = () => {
     setValues({ ...values, isMember: !values.isMember });
   };
 
   const handleChange = (e) => {
-    console.log(e.target);
+    setValues({ ...values, [e.target.name]: e.target.value });
   };
   const onSubmit = (e) => {
     e.preventDefault();
-    console.log(e.target);
+    const {
+      businessName,
+      contactNumber,
+      email,
+      address,
+      businessType,
+      password,
+      rePassword,
+      isMember,
+    } = values;
+    if (
+      !email ||
+      !password ||
+      (!isMember &&
+        (!businessName || !contactNumber || !address || !rePassword))
+    ) {
+      displayAlert();
+      return;
+    }
+    if(password !== rePassword)
+    {
+      //alertText='your password is different'
+       displayAlert();
+    }
+    console.log(values);
   };
+
   return (
     <Wrapper className='full-page'>
       <form className='form' onSubmit={onSubmit}>
         <Logo />
         <h3> {values.isMember ? 'Login' : 'Register'} </h3>
-        {values.showAlert && <Alert />}
+        {showAlert && <Alert />}
         {/* business name input  */}
         {!values.isMember && (
           <FormRow
             type='text'
-            name='name'
+            name='businessName'
             labelText='business Name'
             value={values.businessName}
             handleChange={handleChange}
@@ -49,7 +76,7 @@ const Register = () => {
         {!values.isMember && (
           <FormRow
             type='text'
-            name='contact'
+            name='contactNumber'
             labelText='Contact Number'
             value={values.contactNumber}
             handleChange={handleChange}
@@ -97,7 +124,7 @@ const Register = () => {
         {!values.isMember && (
           <FormRow
             type='password'
-            name='password'
+            name='rePassword'
             labelText='confirm password'
             value={values.rePassword}
             handleChange={handleChange}

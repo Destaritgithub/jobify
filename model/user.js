@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
+import bcryptjs from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const UserSchema = new mongoose.Schema({
   businessName: {
@@ -36,7 +38,20 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, 'please provide password'],
     minlength: 6,
+    select: false,
   },
 });
+
+UserSchema.pre('save', async function () {
+  const salt = await bcryptjs.genSalt(10);
+  this.password = await bcryptjs.hash(this.password, salt);
+  //console.log(this.password);
+});
+UserSchema.methods.createJWT = function () {
+  //console.log(this);
+  return jwt.sign({ userId: this._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_LIFETIME,
+  });
+};
 
 export default mongoose.model('User', UserSchema);
